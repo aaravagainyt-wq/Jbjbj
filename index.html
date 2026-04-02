@@ -323,37 +323,31 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- DATABASE (Leagues Added) ---
-        const playersData = [
-            { 
-                name: "DeadloxGmZz", tier: "Master", yt: "@DeadloxGmZz", bio: "Undisputed legend of the arena.",
-                leagues: { "Mace": "HT3", "Diamond": "HT3", "Crystal": "HT3", "Sword": "HT3" }
-            },
-            { 
-                name: "ProsAarav", tier: "GrandMaster", yt: "N/A", bio: "Reigning champ. Unmatched in pure combat.",
-                leagues: { "Mace": "HT4", "Diamond": "HT5", "Crystal": "LT1" }
-            },
-            { 
-                name: "robloxbaconfr", tier: "Diamond", yt: "N/A", bio: "Gatekeeper of the leaderboard. Send your clips in the Discord.",
-                leagues: { "Sword": "LT1", "Axe": "HT5" }
-            },
-            { 
-                name: "Technoblade", tier: "GrandMaster", yt: "@Technoblade", bio: "Technoblade never dies.",
-                leagues: { "Sword": "HT4", "UHC": "HT4" }
-            },
-            { 
-                name: "TryHardSweat", tier: "Gold", yt: "N/A", bio: "Grinding the ranks day by day.",
-                leagues: { "Diamond": "LT2", "Pot": "LT3" }
-            }
-        ];
+        // --- API CONNECTION ---
+        // Your actual Hugging Face Direct URL
+        const API_URL = "https://lord123hh-jsueuxbjxk.hf.space/api/players"; 
 
+        let playersData = [];
         const quotes = ["\"Didn't even break a sweat.\"", "\"Too slow. Try predicting my strafe.\"", "\"Another one bites the dust.\"", "\"Clip that!\""];
+
+        async function fetchLiveLeaderboard() {
+            try {
+                const response = await fetch(API_URL);
+                playersData = await response.json();
+                renderLeaderboard(''); 
+            } catch (error) {
+                console.error("Error fetching leaderboard data:", error);
+                document.getElementById('leaderboard').innerHTML = "<p style='text-align:center; color:#ff4747; font-weight:bold;'>Failed to load database. Check if your Hugging Face Space is currently running.</p>";
+            }
+        }
 
         function sortPlayers() {
             const getPlayer = (n) => {
                 const idx = playersData.findIndex(p => p.name.toLowerCase() === n.toLowerCase());
                 return idx !== -1 ? playersData.splice(idx, 1)[0] : null;
             };
+            
+            // This guarantees Deadlox and ProsAarav remain pinned to the top no matter what
             const p1 = getPlayer("deadloxgmzz");
             const p2 = getPlayer("prosaarav");
 
@@ -378,7 +372,7 @@
                 const borderClass = player.tier === "GrandMaster" ? "anim-border-GrandMaster" : "";
                 const ytDisplay = player.yt !== "N/A" ? `<a href="https://youtube.com/${player.yt}" target="_blank" class="yt-link">▶ ${player.yt}</a>` : `<span class="detail-value">N/A</span>`;
 
-                // Build Leagues HTML
+                // Build Leagues HTML dynamically from the database
                 let leaguesHtml = '';
                 if (player.leagues) {
                     for (const [combat, rankValue] of Object.entries(player.leagues)) {
@@ -412,8 +406,7 @@
                             <button class="share-btn">Share My Rank</button>
                             <div class="montage-quote">${quotes[Math.floor(Math.random() * quotes.length)]}</div>
                         </div>
-                        <div class="model-col" id="model-${player.name}">
-                            </div>
+                        <div class="model-col" id="model-${player.name}"></div>
                     </div>
                 `;
 
@@ -485,9 +478,8 @@
         document.getElementById('closeModalBtn').onclick = () => modal.classList.remove('show');
         window.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
 
-        // INITIALIZE
-        renderLeaderboard();
+        // BOOT UP THE DATABASE
+        fetchLiveLeaderboard();
     </script>
 </body>
 </html>
-
