@@ -31,12 +31,20 @@
             background-color: var(--bg-dark); color: var(--text-main);
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; padding: 2rem 1rem; overflow-x: hidden;
+            position: relative;
+        }
+
+        /* The Cinematic Canvas */
+        #particleCanvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; pointer-events: none;
         }
 
         header {
             width: 100%; max-width: 800px; display: flex; justify-content: space-between;
             align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem;
-            border-bottom: 2px solid var(--bg-card);
+            border-bottom: 2px solid rgba(28, 29, 36, 0.8);
+            z-index: 1;
         }
 
         .logo { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
@@ -52,17 +60,18 @@
 
         .controls {
             width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 1rem;
-            margin-bottom: 2rem; justify-content: space-between;
+            margin-bottom: 2rem; justify-content: space-between; z-index: 1;
         }
 
         .search-bar {
             flex-grow: 1; padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid #333;
-            background-color: var(--bg-card); color: white; font-size: 1rem; outline: none;
+            background-color: rgba(28, 29, 36, 0.8); backdrop-filter: blur(5px);
+            color: white; font-size: 1rem; outline: none; transition: 0.3s ease;
         }
         .search-bar:focus { border-color: var(--primary); }
 
         .leaderboard {
-            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1rem;
+            width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1rem; z-index: 1;
         }
 
         /* Cascade Load Animation */
@@ -72,9 +81,10 @@
         }
 
         .player-card {
-            background-color: var(--bg-card); border-radius: 12px; padding: 1rem 1.5rem;
+            background-color: rgba(28, 29, 36, 0.85); backdrop-filter: blur(10px);
+            border-radius: 12px; padding: 1rem 1.5rem;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
-            cursor: pointer; border: 1px solid transparent; opacity: 0; 
+            cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.05); opacity: 0; 
             animation: slideInFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
@@ -97,22 +107,33 @@
 
         .card-header { display: flex; align-items: center; z-index: 1; }
         .rank-number { font-size: 1.5rem; font-weight: 800; color: var(--text-muted); width: 50px; }
-        .player-card.rank-1 .rank-number { color: var(--gold); }
-        .player-card.rank-2 .rank-number { color: silver; }
+        .player-card.rank-1 .rank-number { color: var(--gold); text-shadow: 0 0 10px rgba(255, 183, 0, 0.5); }
+        .player-card.rank-2 .rank-number { color: silver; text-shadow: 0 0 10px rgba(192, 192, 192, 0.5); }
 
         .avatar {
             width: 60px; height: 60px; border-radius: 8px; margin-right: 1.5rem;
             background-color: #2a2a35; image-rendering: pixelated; z-index: 1;
         }
 
-        .player-info { flex-grow: 1; z-index: 1; }
-        .player-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-        .tier-badge { display: inline-block; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
-
+        .player-info { flex-grow: 1; z-index: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+        .name-wrapper { display: flex; align-items: center; gap: 0.8rem; }
+        .player-name { font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Tier and League Badges */
+        .tier-badge { display: inline-block; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
         .tier-GrandMaster { color: var(--grandmaster); background-color: rgba(255, 71, 71, 0.1); border: 1px solid var(--grandmaster); }
         .tier-Master { color: var(--master); background-color: rgba(255, 0, 127, 0.1); border: 1px solid var(--master); }
         .tier-Diamond { color: var(--diamond); background-color: rgba(0, 229, 255, 0.1); border: 1px solid var(--diamond); }
         .tier-Gold { color: var(--gold); background-color: rgba(255, 183, 0, 0.1); border: 1px solid var(--gold); }
+
+        .league-container { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.1rem; }
+        .league-badge {
+            font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 4px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .league-badge.ht { color: #ff4747; border-color: rgba(255, 71, 71, 0.4); background: rgba(255, 71, 71, 0.1); }
+        .league-badge.lt { color: #00e5ff; border-color: rgba(0, 229, 255, 0.4); background: rgba(0, 229, 255, 0.1); }
 
         /* Expanded Details & 3D Viewer */
         .card-details {
@@ -120,10 +141,10 @@
             opacity: 0; z-index: 1; display: flex; flex-direction: row; gap: 1rem; border-top: 1px solid transparent; justify-content: space-between;
         }
         .player-card.expanded .card-details {
-            max-height: 300px; margin-top: 1rem; padding-top: 1rem; opacity: 1; border-top: 1px solid #333;
+            max-height: 300px; margin-top: 1rem; padding-top: 1rem; opacity: 1; border-top: 1px solid rgba(255,255,255,0.1);
         }
         .stats-col { flex-grow: 1; display: flex; flex-direction: column; gap: 0.8rem; }
-        .model-col { width: 120px; height: 160px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .model-col { width: 120px; height: 160px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 8px; }
 
         .detail-row { display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center;}
         .detail-label { color: var(--text-muted); font-weight: 600; }
@@ -135,20 +156,30 @@
 
         /* Share Button */
         .share-btn {
-            background-color: #333; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px;
-            cursor: pointer; font-weight: bold; transition: 0.2s; align-self: flex-start;
+            background-color: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; align-self: flex-start;
         }
-        .share-btn:hover { background-color: var(--primary); }
+        .share-btn:hover { background-color: var(--primary); border-color: var(--primary); }
 
-        /* Modal */
+        /* Modal Styles Updated */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background-color: var(--bg-card); padding: 2.5rem; border-radius: 16px; max-width: 450px; text-align: center; position: relative; border: 1px solid #333; }
         .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-        .discord-tag { background-color: #5865F2; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; margin: 1.5rem 0; font-size: 1.2rem; }
+        
+        /* New Discord Button Styling */
+        .discord-link-btn {
+            display: inline-block; background-color: #5865F2; color: white; padding: 0.8rem 1.5rem; border-radius: 8px;
+            font-weight: bold; margin: 1.5rem 0; font-size: 1.2rem; text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease; box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+        }
+        .discord-link-btn:hover { background-color: #4752C4; transform: scale(1.05); }
+
     </style>
 </head>
 <body>
+
+    <canvas id="particleCanvas"></canvas>
 
     <header>
         <div class="logo">PvP<span>Tiers</span></div>
@@ -165,12 +196,100 @@
         <div class="modal-content">
             <span class="close-btn" id="closeModalBtn">&times;</span>
             <h2>Want to get ranked?</h2>
-            <p>Add the Discord tag below and send him your best PvP video to get reviewed and placed!</p>
-            <div class="discord-tag">robloxbaconfr</div>
+            <p>Join our official Discord server and submit your best PvP video to get reviewed and placed on the leaderboard!</p>
+            <a href="https://discord.gg/fh4n5SgKW9" target="_blank" class="discord-link-btn">Join Discord</a>
         </div>
     </div>
 
     <script>
+        // --- CINEMATIC PARTICLE BACKGROUND ---
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('mouseout', () => { mouse.x = undefined; mouse.y = undefined; });
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX = -this.speedX;
+                if (this.y < 0 || this.y > canvas.height) this.speedY = -this.speedY;
+
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= (dx / distance) * force * 3;
+                        this.y -= (dy / distance) * force * 3;
+                    }
+                }
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(138, 43, 226, 0.8)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 12000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function connectParticles() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = dx * dx + dy * dy;
+                    if (distance < 10000) {
+                        let opacityValue = 1 - (distance / 10000);
+                        ctx.strokeStyle = `rgba(138, 43, 226, ${opacityValue * 0.3})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+
         // --- SYNTHESIZED SOUND EFFECTS ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -204,13 +323,28 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- DATABASE (All Minecraft Now) ---
+        // --- DATABASE (Leagues Added) ---
         const playersData = [
-            { name: "DeadloxGmZz", tier: "Master", yt: "@DeadloxGmZz", bio: "Undisputed legend of the arena. Master of precision." },
-            { name: "ProsAarav", tier: "GrandMaster", yt: "N/A", bio: "Reigning champ. Unmatched in pure combat." },
-            { name: "robloxbaconfr", tier: "Diamond", yt: "N/A", bio: "Gatekeeper of the leaderboard. Send him your clips." },
-            { name: "Technoblade", tier: "GrandMaster", yt: "@Technoblade", bio: "Technoblade never dies." },
-            { name: "TryHardSweat", tier: "Gold", yt: "N/A", bio: "Grinding the ranks day by day." }
+            { 
+                name: "DeadloxGmZz", tier: "Master", yt: "@DeadloxGmZz", bio: "Undisputed legend of the arena.",
+                leagues: { "Mace": "HT3", "Diamond": "HT3", "Crystal": "HT3", "Sword": "HT3" }
+            },
+            { 
+                name: "ProsAarav", tier: "GrandMaster", yt: "N/A", bio: "Reigning champ. Unmatched in pure combat.",
+                leagues: { "Mace": "HT4", "Diamond": "HT5", "Crystal": "LT1" }
+            },
+            { 
+                name: "robloxbaconfr", tier: "Diamond", yt: "N/A", bio: "Gatekeeper of the leaderboard. Send your clips in the Discord.",
+                leagues: { "Sword": "LT1", "Axe": "HT5" }
+            },
+            { 
+                name: "Technoblade", tier: "GrandMaster", yt: "@Technoblade", bio: "Technoblade never dies.",
+                leagues: { "Sword": "HT4", "UHC": "HT4" }
+            },
+            { 
+                name: "TryHardSweat", tier: "Gold", yt: "N/A", bio: "Grinding the ranks day by day.",
+                leagues: { "Diamond": "LT2", "Pot": "LT3" }
+            }
         ];
 
         const quotes = ["\"Didn't even break a sweat.\"", "\"Too slow. Try predicting my strafe.\"", "\"Another one bites the dust.\"", "\"Clip that!\""];
@@ -244,6 +378,15 @@
                 const borderClass = player.tier === "GrandMaster" ? "anim-border-GrandMaster" : "";
                 const ytDisplay = player.yt !== "N/A" ? `<a href="https://youtube.com/${player.yt}" target="_blank" class="yt-link">▶ ${player.yt}</a>` : `<span class="detail-value">N/A</span>`;
 
+                // Build Leagues HTML
+                let leaguesHtml = '';
+                if (player.leagues) {
+                    for (const [combat, rankValue] of Object.entries(player.leagues)) {
+                        const badgeClass = rankValue.toLowerCase().includes('ht') ? 'ht' : 'lt';
+                        leaguesHtml += `<span class="league-badge ${badgeClass}">${combat} ${rankValue}</span>`;
+                    }
+                }
+
                 const card = document.createElement('div');
                 card.className = `player-card ${borderClass} ${rank === 1 ? 'rank-1' : ''} ${rank === 2 ? 'rank-2' : ''}`;
                 card.style.animationDelay = `${visibleIndex * 0.1}s`; 
@@ -253,8 +396,13 @@
                         <div class="rank-number">#${rank}</div>
                         <img class="avatar" src="${skinUrl}" alt="${player.name}" onerror="this.onerror=null; this.src='${fallbackSkin}';">
                         <div class="player-info">
-                            <div class="player-name">${player.name}</div>
-                            <div class="tier-badge tier-${player.tier}">${player.tier}</div>
+                            <div class="name-wrapper">
+                                <div class="player-name">${player.name}</div>
+                                <div class="tier-badge tier-${player.tier}">${player.tier}</div>
+                            </div>
+                            <div class="league-container">
+                                ${leaguesHtml}
+                            </div>
                         </div>
                     </div>
                     <div class="card-details">
@@ -293,7 +441,7 @@
                             viewer.autoRotate = true;
                             skinRendered = true;
                         } catch (e) {
-                            console.log("Skin load failed, likely CORS or invalid MC name.");
+                            console.log("Skin load failed.");
                         }
                     }
                 });
@@ -309,7 +457,7 @@
                     shareBtn.style.backgroundColor = "var(--primary)";
                     setTimeout(() => {
                         shareBtn.innerText = "Share My Rank";
-                        shareBtn.style.backgroundColor = "#333";
+                        shareBtn.style.backgroundColor = "rgba(255,255,255,0.1)";
                     }, 2000);
                 });
 
@@ -342,3 +490,4 @@
     </script>
 </body>
 </html>
+
