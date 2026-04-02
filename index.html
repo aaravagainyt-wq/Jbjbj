@@ -125,6 +125,7 @@
         .tier-Master { color: var(--master); background-color: rgba(255, 0, 127, 0.1); border: 1px solid var(--master); }
         .tier-Diamond { color: var(--diamond); background-color: rgba(0, 229, 255, 0.1); border: 1px solid var(--diamond); }
         .tier-Gold { color: var(--gold); background-color: rgba(255, 183, 0, 0.1); border: 1px solid var(--gold); }
+        .tier-Unranked { color: var(--text-muted); background-color: rgba(160, 160, 160, 0.1); border: 1px solid var(--text-muted); }
 
         .league-container { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.1rem; }
         .league-badge {
@@ -323,12 +324,28 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- API CONNECTION ---
-        // Your actual Hugging Face Direct URL
+        // --- API CONNECTION & SORTING ---
         const API_URL = "https://lord123hh-jsueuxbjxk.hf.space/api/players"; 
 
         let playersData = [];
         const quotes = ["\"Didn't even break a sweat.\"", "\"Too slow. Try predicting my strafe.\"", "\"Another one bites the dust.\"", "\"Clip that!\""];
+
+        // The Rank Weights for Auto-Sorting
+        const rankWeights = {
+            "HT1": 10, "HT2": 9, "HT3": 8, "HT4": 7, "HT5": 6,
+            "LT1": 5, "LT2": 4, "LT3": 3, "LT4": 2, "LT5": 1
+        };
+
+        function getPlayerScore(player) {
+            let bestScore = 0;
+            if (player.leagues) {
+                for (let r of Object.values(player.leagues)) {
+                    let score = rankWeights[r.toUpperCase().trim()] || 0;
+                    if (score > bestScore) bestScore = score;
+                }
+            }
+            return bestScore;
+        }
 
         async function fetchLiveLeaderboard() {
             try {
@@ -342,12 +359,15 @@
         }
 
         function sortPlayers() {
+            // Sort EVERYONE automatically based on their highest HT/LT rank
+            playersData.sort((a, b) => getPlayerScore(b) - getPlayerScore(a));
+
+            // Hardcode rules to ensure Deadlox and ProsAarav remain top 2 if they are in the DB
             const getPlayer = (n) => {
                 const idx = playersData.findIndex(p => p.name.toLowerCase() === n.toLowerCase());
                 return idx !== -1 ? playersData.splice(idx, 1)[0] : null;
             };
             
-            // This guarantees Deadlox and ProsAarav remain pinned to the top no matter what
             const p1 = getPlayer("deadloxgmzz");
             const p2 = getPlayer("prosaarav");
 
@@ -367,14 +387,24 @@
                 if (searchTerm && !player.name.toLowerCase().includes(searchTerm.toLowerCase())) return;
 
                 const rank = visibleIndex + 1;
-                const skinUrl = `https://minotar.net/armor/bust/${player.name}/100.png`;
+                
+                // If they have a custom skin, the 3D viewer will use it! The 2D avatar uses Minotar.
                 const fallbackSkin = `https://minotar.net/armor/bust/MHF_Steve/100.png`;
-                const borderClass = player.tier === "GrandMaster" ? "anim-border-GrandMaster" : "";
-                const ytDisplay = player.yt !== "N/A" ? `<a href="https://youtube.com/${player.yt}" target="_blank" class="yt-link">▶ ${player.yt}</a>` : `<span class="detail-value">N/A</span>`;
+                const avatarImgSrc = `https://minotar.net/armor/bust/${player.name}/100.png`;
+                const fullSkinDataFor3D = player.custom_skin || `https://minotar.net/skin/${player.name}`;
 
-                // Build Leagues HTML dynamically from the database
+                const borderClass = player.tier === "GrandMaster" ? "anim-border-GrandMaster" : "";
+                
+                // Optional Info Logic (Hides if blank)
+                const ytDisplay = player.yt && player.yt !== "N/A" ? 
+                    `<div class="detail-row"><span class="detail-label">YouTube:</span> <a href="https://youtube.com/${player.yt}" target="_blank" class="yt-link">▶ ${player.yt}</a></div>` : ``;
+                
+                const bioDisplay = player.bio ? 
+                    `<div class="detail-row"><span class="detail-label">Bio:</span><span class="detail-value">${player.bio}</span></div>` : ``;
+
+                // Build Leagues HTML
                 let leaguesHtml = '';
-                if (player.leagues) {
+                if (player.leagues && Object.keys(player.leagues).length > 0) {
                     for (const [combat, rankValue] of Object.entries(player.leagues)) {
                         const badgeClass = rankValue.toLowerCase().includes('ht') ? 'ht' : 'lt';
                         leaguesHtml += `<span class="league-badge ${badgeClass}">${combat} ${rankValue}</span>`;
@@ -388,11 +418,11 @@
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="rank-number">#${rank}</div>
-                        <img class="avatar" src="${skinUrl}" alt="${player.name}" onerror="this.onerror=null; this.src='${fallbackSkin}';">
+                        <img class="avatar" src="${avatarImgSrc}" alt="${player.name}" onerror="this.onerror=null; this.src='${fallbackSkin}';">
                         <div class="player-info">
                             <div class="name-wrapper">
                                 <div class="player-name">${player.name}</div>
-                                <div class="tier-badge tier-${player.tier}">${player.tier}</div>
+                                ${player.tier !== "Unranked" ? `<div class="tier-badge tier-${player.tier}">${player.tier}</div>` : ""}
                             </div>
                             <div class="league-container">
                                 ${leaguesHtml}
@@ -401,8 +431,8 @@
                     </div>
                     <div class="card-details">
                         <div class="stats-col">
-                            <div class="detail-row"><span class="detail-label">YouTube:</span>${ytDisplay}</div>
-                            <div class="detail-row"><span class="detail-label">Bio:</span><span class="detail-value">${player.bio}</span></div>
+                            ${ytDisplay}
+                            ${bioDisplay}
                             <button class="share-btn">Share My Rank</button>
                             <div class="montage-quote">${quotes[Math.floor(Math.random() * quotes.length)]}</div>
                         </div>
@@ -427,7 +457,7 @@
                             let viewer = new skinview3d.SkinViewer({
                                 canvas: document.getElementById('canvas-'+player.name),
                                 width: 120, height: 160,
-                                skin: `https://minotar.net/skin/${player.name}`
+                                skin: fullSkinDataFor3D
                             });
                             
                             viewer.animations.add(skinview3d.WalkingAnimation);
@@ -444,7 +474,7 @@
                 shareBtn.addEventListener('click', (e) => {
                     e.stopPropagation(); 
                     playHoverSound();
-                    const textToShare = `I am Rank #${rank} (${player.tier}) on the official PvP Tiers! Can you beat me?`;
+                    const textToShare = `I am Rank #${rank} on the official PvP Tiers! Can you beat me?`;
                     navigator.clipboard.writeText(textToShare);
                     shareBtn.innerText = "Copied to Clipboard!";
                     shareBtn.style.backgroundColor = "var(--primary)";
@@ -483,3 +513,4 @@
     </script>
 </body>
 </html>
+
