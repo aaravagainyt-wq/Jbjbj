@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PvP Tiers | The Ultimate Leaderboard</title>
+    <title>PvP Tiers | Minecraft Leaderboard</title>
     
     <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.0/bundles/skinview3d.bundle.js"></script>
     
@@ -61,15 +61,6 @@
         }
         .search-bar:focus { border-color: var(--primary); }
 
-        .filter-group { display: flex; gap: 0.5rem; }
-        .filter-btn {
-            background-color: var(--bg-card); color: var(--text-muted); border: 1px solid #333;
-            padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;
-        }
-        .filter-btn.active, .filter-btn:hover {
-            background-color: var(--primary); color: white; border-color: var(--primary);
-        }
-
         .leaderboard {
             width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1rem;
         }
@@ -116,7 +107,6 @@
 
         .player-info { flex-grow: 1; z-index: 1; }
         .player-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-        .game-tag { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: #333; color: #ccc; }
         .tier-badge { display: inline-block; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
 
         .tier-GrandMaster { color: var(--grandmaster); background-color: rgba(255, 71, 71, 0.1); border: 1px solid var(--grandmaster); }
@@ -126,7 +116,7 @@
 
         /* Expanded Details & 3D Viewer */
         .card-details {
-            max-height: 0; overflow: hidden; transition: max-height 0.5s ease, margin-top 0.3s ease, opacity 0.3s ease;
+            max-height: 0; overflow: hidden; transition: max-height 0.5s ease, margin-top: 0.3s ease, opacity 0.3s ease;
             opacity: 0; z-index: 1; display: flex; flex-direction: row; gap: 1rem; border-top: 1px solid transparent; justify-content: space-between;
         }
         .player-card.expanded .card-details {
@@ -166,12 +156,7 @@
     </header>
 
     <div class="controls">
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search for a player...">
-        <div class="filter-group">
-            <button class="filter-btn active" data-filter="All">All Games</button>
-            <button class="filter-btn" data-filter="Minecraft">Minecraft</button>
-            <button class="filter-btn" data-filter="Roblox">Roblox</button>
-        </div>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search for a Minecraft player...">
     </div>
 
     <div class="leaderboard" id="leaderboard"></div>
@@ -196,7 +181,7 @@
             osc.type = 'sine';
             osc.frequency.setValueAtTime(800, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
-            gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime); // Very quiet blip
+            gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime); 
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
@@ -211,7 +196,7 @@
             osc.type = 'square';
             osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); // Thud sound
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); 
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
@@ -219,13 +204,13 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- DATABASE ---
+        // --- DATABASE (All Minecraft Now) ---
         const playersData = [
-            { name: "DeadloxGmZz", tier: "Master", game: "Minecraft", yt: "@DeadloxGmZz", bio: "Undisputed legend of the arena. Master of precision." },
-            { name: "ProsAarav", tier: "GrandMaster", game: "Roblox", yt: "N/A", bio: "Creator and reigning champ of Punch Battles. Unmatched in pure combat." },
-            { name: "robloxbaconfr", tier: "Diamond", game: "Roblox", yt: "N/A", bio: "Gatekeeper of the leaderboard. Send him your clips." },
-            { name: "Technoblade", tier: "GrandMaster", game: "Minecraft", yt: "@Technoblade", bio: "Technoblade never dies." },
-            { name: "TryHardSweat", tier: "Gold", game: "Minecraft", yt: "N/A", bio: "Grinding the ranks day by day." }
+            { name: "DeadloxGmZz", tier: "Master", yt: "@DeadloxGmZz", bio: "Undisputed legend of the arena. Master of precision." },
+            { name: "ProsAarav", tier: "GrandMaster", yt: "N/A", bio: "Reigning champ. Unmatched in pure combat." },
+            { name: "robloxbaconfr", tier: "Diamond", yt: "N/A", bio: "Gatekeeper of the leaderboard. Send him your clips." },
+            { name: "Technoblade", tier: "GrandMaster", yt: "@Technoblade", bio: "Technoblade never dies." },
+            { name: "TryHardSweat", tier: "Gold", yt: "N/A", bio: "Grinding the ranks day by day." }
         ];
 
         const quotes = ["\"Didn't even break a sweat.\"", "\"Too slow. Try predicting my strafe.\"", "\"Another one bites the dust.\"", "\"Clip that!\""];
@@ -242,7 +227,7 @@
             if (p1) playersData.unshift(p1);
         }
 
-        function renderLeaderboard(searchTerm = '', gameFilter = 'All') {
+        function renderLeaderboard(searchTerm = '') {
             const container = document.getElementById('leaderboard');
             container.innerHTML = ''; 
 
@@ -251,7 +236,6 @@
             let visibleIndex = 0;
 
             playersData.forEach((player) => {
-                if (gameFilter !== 'All' && player.game !== gameFilter) return;
                 if (searchTerm && !player.name.toLowerCase().includes(searchTerm.toLowerCase())) return;
 
                 const rank = visibleIndex + 1;
@@ -262,14 +246,14 @@
 
                 const card = document.createElement('div');
                 card.className = `player-card ${borderClass} ${rank === 1 ? 'rank-1' : ''} ${rank === 2 ? 'rank-2' : ''}`;
-                card.style.animationDelay = `${visibleIndex * 0.1}s`; // Cascade effect
+                card.style.animationDelay = `${visibleIndex * 0.1}s`; 
 
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="rank-number">#${rank}</div>
                         <img class="avatar" src="${skinUrl}" alt="${player.name}" onerror="this.onerror=null; this.src='${fallbackSkin}';">
                         <div class="player-info">
-                            <div class="player-name">${player.name} <span class="game-tag">${player.game}</span></div>
+                            <div class="player-name">${player.name}</div>
                             <div class="tier-badge tier-${player.tier}">${player.tier}</div>
                         </div>
                     </div>
@@ -281,8 +265,7 @@
                             <div class="montage-quote">${quotes[Math.floor(Math.random() * quotes.length)]}</div>
                         </div>
                         <div class="model-col" id="model-${player.name}">
-                            ${player.game !== 'Minecraft' ? '<span style="font-size:0.75rem; color:#666;">No 3D Model</span>' : ''}
-                        </div>
+                            </div>
                     </div>
                 `;
 
@@ -295,8 +278,7 @@
                     playClickSound();
                     card.classList.toggle('expanded');
                     
-                    // Render 3D skin only when expanded (saves performance)
-                    if (card.classList.contains('expanded') && player.game === 'Minecraft' && !skinRendered) {
+                    if (card.classList.contains('expanded') && !skinRendered) {
                         try {
                             const canvasContainer = document.getElementById(`model-${player.name}`);
                             canvasContainer.innerHTML = '<canvas id="canvas-'+player.name+'"></canvas>';
@@ -319,7 +301,7 @@
                 // Share Button Logic
                 const shareBtn = card.querySelector('.share-btn');
                 shareBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Stop card from closing
+                    e.stopPropagation(); 
                     playHoverSound();
                     const textToShare = `I am Rank #${rank} (${player.tier}) on the official PvP Tiers! Can you beat me?`;
                     navigator.clipboard.writeText(textToShare);
@@ -345,20 +327,9 @@
             }
         };
 
-        // --- SEARCH & FILTERS ---
+        // --- SEARCH BAR ---
         const searchInput = document.getElementById('searchInput');
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        let currentGameFilter = 'All';
-
-        searchInput.addEventListener('input', (e) => renderLeaderboard(e.target.value, currentGameFilter));
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentGameFilter = e.target.getAttribute('data-filter');
-                renderLeaderboard(searchInput.value, currentGameFilter);
-            });
-        });
+        searchInput.addEventListener('input', (e) => renderLeaderboard(e.target.value));
 
         // --- MODAL ---
         const modal = document.getElementById('enlistModal');
@@ -371,3 +342,4 @@
     </script>
 </body>
 </html>
+
